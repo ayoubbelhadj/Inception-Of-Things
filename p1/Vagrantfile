@@ -1,0 +1,31 @@
+SERVER_IP = "192.168.56.110"
+WORKER_IP = "192.168.56.111"
+LOGIN = "abelhadj"
+SERVER_HOSTNAME = "#{LOGIN}S"
+WORKER_HOSTNAME = "#{LOGIN}SW"
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "bento/ubuntu-24.04"
+    
+    config.vm.define SERVER_HOSTNAME do |server|
+        server.vm.hostname = SERVER_HOSTNAME
+        server.vm.network "private_network", ip: SERVER_IP
+        server.vm.provider "virtualbox" do |vb|
+            vb.name = SERVER_HOSTNAME
+            vb.memory = 1024
+            vb.cpus = 1
+        end
+        server.vm.provision "shell", path: "scripts/server.sh", args: [SERVER_IP, WORKER_IP, LOGIN]
+    end
+
+    config.vm.define WORKER_HOSTNAME do |worker|
+        worker.vm.hostname = WORKER_HOSTNAME
+        worker.vm.network "private_network", ip: WORKER_IP
+        worker.vm.provider "virtualbox" do |vb|
+            vb.name = WORKER_HOSTNAME
+            vb.memory = 1024
+            vb.cpus = 1
+        end
+        worker.vm.provision "shell", path: "scripts/worker.sh", args: [SERVER_IP, WORKER_IP, LOGIN]
+    end
+end
