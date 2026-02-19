@@ -7,8 +7,8 @@ LOGIN=$3
 
 # Install packages
 echo "[INFO] Installing required packages..."
-apt-get update
-apt-get install -y curl net-tools
+apk update
+apk add --no-cache curl net-tools netcat-openbsd bash
 
 # Add hostnames to /etc/hosts
 echo "[INFO] Adding hostname entries..."
@@ -17,21 +17,32 @@ echo "${WORKER_IP} ${LOGIN}SW" >> /etc/hosts
 
 # Install K3s server
 echo "[INFO] Installing K3s in SERVER mode..."
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip=${SERVER_IP} --write-kubeconfig-mode=644" sh -
+curl -sfL https://get.k3s.io | sh -s - server \
+    --node-ip=${SERVER_IP} \
+    --write-kubeconfig-mode=644
 
 # Wait for K3s to start
 echo "[INFO] Waiting for K3s to start..."
-sleep 20
+sleep 30
 
-# Save token for worker
-echo "[INFO] Saving token..."
+# Create confs directory
+echo "[DEBUG] Creating /vagrant/confs directory..."
 mkdir -p /vagrant/confs
-sudo cp /var/lib/rancher/k3s/server/node-token /vagrant/confs/
+if [ ! -d /vagrant/confs ]; then
+    echo "[ERROR] Failed to create /vagrant/confs!"
+    exit 1
+fi
+chmod 755 /vagrant/confs
+echo "[INFO] Directory created"
+
+# Copy token
+echo "[DEBUG] Copying token file..."
+cp /var/lib/rancher/k3s/server/node-token /vagrant/confs/node-token
+chmod 644 /vagrant/confs/node-token
+
 
 # Setup kubectl alias
-echo "[INFO] Setting up kubectl alias..."
-grep -qxF "alias k='kubectl'" /home/vagrant/.bashrc || echo "alias k='kubectl'" >> /home/vagrant/.bashrc
-grep -qxF "alias k='kubectl'" /root/.bashrc || echo "alias k='kubectl'" >> /root/.bashrc
-
+echo "alias k='kubectl'" >> /root/.profile
+echo "alias k='kubectl'" >> /home/vagrant/.profile 2>/dev/null || true
 
 echo "[INFO] Server ready!"

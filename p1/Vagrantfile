@@ -5,19 +5,25 @@ SERVER_HOSTNAME = "#{LOGIN}S"
 WORKER_HOSTNAME = "#{LOGIN}SW"
 
 Vagrant.configure("2") do |config|
-    config.vm.box = "bento/ubuntu-24.04"
+    config.vm.box = "generic/alpine318"
+    config.vm.box_version = "4.3.12"
+
+    config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+    config.ssh.extra_args = ["-t", "sudo -i"]
     
+    # Server VM (Controller)
     config.vm.define SERVER_HOSTNAME do |server|
         server.vm.hostname = SERVER_HOSTNAME
         server.vm.network "private_network", ip: SERVER_IP
         server.vm.provider "virtualbox" do |vb|
             vb.name = SERVER_HOSTNAME
-            vb.memory = 1024
+            vb.memory = 2048
             vb.cpus = 1
         end
-        server.vm.provision "shell", path: "scripts/server.sh", args: [SERVER_IP, WORKER_IP, LOGIN]
+        server.vm.provision "shell", path: "scripts/server.sh", args: [SERVER_IP, WORKER_IP, LOGIN], privileged: true 
     end
 
+    # Worker VM (Agent)
     config.vm.define WORKER_HOSTNAME do |worker|
         worker.vm.hostname = WORKER_HOSTNAME
         worker.vm.network "private_network", ip: WORKER_IP
@@ -26,6 +32,6 @@ Vagrant.configure("2") do |config|
             vb.memory = 1024
             vb.cpus = 1
         end
-        worker.vm.provision "shell", path: "scripts/worker.sh", args: [SERVER_IP, WORKER_IP, LOGIN]
+        worker.vm.provision "shell", path: "scripts/worker.sh", args: [SERVER_IP, WORKER_IP, LOGIN], privileged: true 
     end
 end
