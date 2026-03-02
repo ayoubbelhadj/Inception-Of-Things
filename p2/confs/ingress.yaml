@@ -2,7 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: apps-ingress
-  namespace: iot-part2 
 spec:
   rules:
   # Route app1.com to App 1
