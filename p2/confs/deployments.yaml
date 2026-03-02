@@ -1,0 +1,132 @@
+# ConfigMaps for each app
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app1-config
+  namespace: iot-part2 
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <h1>Hello from App 1!</h1>
+      </body>
+    </html>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app2-config
+  namespace: iot-part2
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <h1>Hello from App 2!</h1>
+      </body>
+    </html>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app3-config
+  namespace: iot-part2 
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <h1>Hello from App 3!</h1>
+      </body>
+    </html>
+---
+# Deployment for App 1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-app1
+  namespace: iot-part2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app1
+  template:
+    metadata:
+      labels:
+        app: app1
+    spec:
+      containers:
+      - name: app1
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: app1-volume
+            mountPath: /usr/share/nginx/html/index.html
+            subPath: index.html
+      volumes:
+        - name: app1-volume
+          configMap:
+            name: app1-config
+---
+# Deployment for App 2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-app2
+  namespace: iot-part2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app2
+  template:
+    metadata:
+      labels:
+        app: app2
+    spec:
+      containers:
+      - name: app2
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: app2-volume
+            mountPath: /usr/share/nginx/html/index.html
+            subPath: index.html
+      volumes:
+        - name: app2-volume
+          configMap:
+            name: app2-config
+---
+# Deployment for App 3
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-app3
+  namespace: iot-part2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app3
+  template:
+    metadata:
+      labels:
+        app: app3
+    spec:
+      containers:
+      - name: app3
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: app3-volume
+            mountPath: /usr/share/nginx/html/index.html
+            subPath: index.html
+      volumes:
+        - name: app3-volume
+          configMap:
+            name: app3-config
