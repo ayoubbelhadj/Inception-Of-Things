@@ -1,0 +1,27 @@
+SERVER_IP = "192.168.56.110"
+LOGIN = "abelhadj"
+SERVER_HOSTNAME = "#{LOGIN}S"
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "generic/alpine318"
+    config.vm.box_version = "4.3.12"
+
+    config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+    config.ssh.extra_args = ["-t", "sudo -i"]
+
+    config.vm.define SERVER_HOSTNAME do |server|
+        server.vm.hostname = SERVER_HOSTNAME
+        server.vm.network "private_network", ip: SERVER_IP
+        
+        server.vm.provider "virtualbox" do |vb|
+            vb.name = SERVER_HOSTNAME
+            vb.memory = 2048
+            vb.cpus = 2
+        end
+    
+        server.vm.provision "shell",
+            path: "scripts/setup.sh",
+            args: [SERVER_IP, LOGIN],
+            privileged: true
+    end
+end
