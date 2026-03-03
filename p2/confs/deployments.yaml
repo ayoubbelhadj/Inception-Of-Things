@@ -1,43 +1,3 @@
-# ConfigMaps for each app
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app1-config
-data:
-  index.html: |
-    <!DOCTYPE html>
-    <html>
-      <body>
-        <h1>Hello from App 1!</h1>
-      </body>
-    </html>
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app2-config
-data:
-  index.html: |
-    <!DOCTYPE html>
-    <html>
-      <body>
-        <h1>Hello from App 2!</h1>
-      </body>
-    </html>
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app3-config
-data:
-  index.html: |
-    <!DOCTYPE html>
-    <html>
-      <body>
-        <h1>Hello from App 3!</h1>
-      </body>
-    </html>
----
 # Deployment for App 1
 apiVersion: apps/v1
 kind: Deployment
@@ -55,17 +15,12 @@ spec:
     spec:
       containers:
       - name: app1
-        image: nginx
+        image: paulbouwer/hello-kubernetes:1.10
         ports:
-        - containerPort: 80
-        volumeMounts:
-          - name: app1-volume
-            mountPath: /usr/share/nginx/html/index.html
-            subPath: index.html
-      volumes:
-        - name: app1-volume
-          configMap:
-            name: app1-config
+          - containerPort: 8080
+        env:
+          - name: MESSAGE
+            value: "Hello from app1."
 ---
 # Deployment for App 2
 apiVersion: apps/v1
@@ -84,17 +39,12 @@ spec:
     spec:
       containers:
       - name: app2
-        image: nginx
+        image: paulbouwer/hello-kubernetes:1.10
         ports:
-        - containerPort: 80
-        volumeMounts:
-          - name: app2-volume
-            mountPath: /usr/share/nginx/html/index.html
-            subPath: index.html
-      volumes:
-        - name: app2-volume
-          configMap:
-            name: app2-config
+          - containerPort: 8080
+        env:
+          - name: MESSAGE
+            value: "Hello from app2."
 ---
 # Deployment for App 3
 apiVersion: apps/v1
@@ -113,14 +63,9 @@ spec:
     spec:
       containers:
       - name: app3
-        image: nginx
+        image: paulbouwer/hello-kubernetes:1.10
         ports:
-        - containerPort: 80
-        volumeMounts:
-          - name: app3-volume
-            mountPath: /usr/share/nginx/html/index.html
-            subPath: index.html
-      volumes:
-        - name: app3-volume
-          configMap:
-            name: app3-config
+          - containerPort: 8080
+        env:
+          - name: MESSAGE
+            value: "Hello from app3."
