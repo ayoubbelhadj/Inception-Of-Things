@@ -7,8 +7,8 @@ LOGIN=$3
 
 # Install packages
 echo "[INFO] Installing required packages..."
-apk update
-apk add --no-cache curl net-tools netcat-openbsd bash
+apk update > /dev/null 2>&1
+apk add --no-cache curl net-tools netcat-openbsd bash > /dev/null 2>&1
 
 # Add hostnames to /etc/hosts
 echo "[INFO] Adding hostname entries..."
@@ -19,27 +19,41 @@ echo "${WORKER_IP} ${LOGIN}SW" >> /etc/hosts
 echo "[INFO] Installing K3s in SERVER mode..."
 curl -sfL https://get.k3s.io | sh -s - server \
     --node-ip=${SERVER_IP} \
-    --write-kubeconfig-mode=644
+    --write-kubeconfig-mode=644 > /dev/null 2>&1
 
-# Wait for K3s to start
-echo "[INFO] Waiting for K3s to start..."
-sleep 30
+# Wait for K3s API server to be ready
+echo "[INFO] Waiting for K3s API server..."
+until curl -k -s https://localhost:6443/readyz > /dev/null 2>&1; do
+  sleep 3
+done
+
+# Wait for kubectl to work
+echo "[INFO] Waiting for kubectl..."
+until kubectl get nodes > /dev/null 2>&1; do
+  sleep 3
+done
+
+echo "[INFO] K3s is ready!"
+
+# Wait for token file to be created
+echo "[INFO] Waiting for token file..."
+until [ -f /var/lib/rancher/k3s/server/node-token ]; do
+  sleep 2
+done
 
 # Create confs directory
-echo "[DEBUG] Creating /vagrant/confs directory..."
+echo "[INFO] Saving token for worker..."
 mkdir -p /vagrant/confs
-if [ ! -d /vagrant/confs ]; then
-    echo "[ERROR] Failed to create /vagrant/confs!"
-    exit 1
-fi
-chmod 755 /vagrant/confs
-echo "[INFO] Directory created"
-
-# Copy token
-echo "[DEBUG] Copying token file..."
 cp /var/lib/rancher/k3s/server/node-token /vagrant/confs/node-token
 chmod 644 /vagrant/confs/node-token
 
+# Verify token was saved
+if [ -f /vagrant/confs/node-token ]; then
+    echo "[INFO] Token saved successfully!"
+else
+    echo "[ERROR] Failed to save token!"
+    exit 1
+fi
 
 # Setup kubectl alias
 echo "alias k='kubectl'" >> /root/.profile
