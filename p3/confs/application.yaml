@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: playground-app
+  namespace: argocd
+spec:
+  project: default
+  
+  # Source - GitHub repository
+  source:
+    repoURL: https://github.com/ayoubbelhadj/IoT-abelhadj.git
+    targetRevision: main
+    path: dev
+  
+  # Destination - Where to deploy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
