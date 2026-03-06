@@ -1,11 +1,16 @@
 global:
   hosts:
-    domain: gitlab.local
-    externalIP: 127.0.0.1
+    domain: 134.122.70.25
+    externalIP: 134.122.70.25
+    https: false 
   ingress:
-    enabled: false
+    enabled: true
     configureCertmanager: false
   edition: ce
+  
+  appConfig:
+    enableUsagePing: false
+    enableSeatLink: false
 
 nginx-ingress:
   enabled: false
@@ -26,10 +31,6 @@ gitlab:
   webservice:
     minReplicas: 1
     maxReplicas: 1
-    extraEnv:
-      GITLAB_HOST: localhost
-      GITLAB_HTTPS: false
-      GITLAB_PORT: 8083
       
   sidekiq:
     minReplicas: 1
