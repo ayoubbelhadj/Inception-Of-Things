@@ -1,0 +1,52 @@
+global:
+  hosts:
+    domain: gitlab.local
+    externalIP: 127.0.0.1
+  ingress:
+    enabled: false
+    configureCertmanager: false
+  edition: ce
+
+nginx-ingress:
+  enabled: false
+
+gitlab-runner:
+  install: false
+
+prometheus:
+  install: false
+
+registry:
+  enabled: false
+
+grafana:
+  enabled: false
+
+gitlab:
+  webservice:
+    minReplicas: 1
+    maxReplicas: 1
+    extraEnv:
+      GITLAB_HOST: localhost
+      GITLAB_HTTPS: false
+      GITLAB_PORT: 8083
+      
+  sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+  gitaly: {}
+  gitlab-shell:
+    minReplicas: 1
+    maxReplicas: 1
+  kas:
+    enabled: false
+  gitlab-exporter:
+    enabled: false
+
+postgresql:
+  metrics:
+    enabled: false
+
+redis:
+  metrics:
+    enabled: false

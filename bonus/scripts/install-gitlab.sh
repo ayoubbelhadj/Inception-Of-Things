@@ -12,15 +12,18 @@ NC='\033[0m'
 # Variables
 GITLAB_NAMESPACE="gitlab"
 CLUSTER_NAME="iot-cluster"
+VALUES_FILE="../confs/gitlab-values.yaml"
 
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo -e "${BLUE}${BOLD}    Bonus: Install GitLab Locally${NC}"
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
 
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}[ERROR]${NC} Please run as root (use sudo)"
+
+# Check if values file exists
+if [ ! -f "$VALUES_FILE" ]; then
+    echo -e "${RED}[ERROR]${NC} Values file not found: ${VALUES_FILE}"
+    echo -e "${YELLOW}[INFO]${NC} Make sure gitlab-values.yaml exists in confs/"
     exit 1
 fi
 
@@ -38,7 +41,7 @@ echo -e "${GREEN}[✓]${NC} Cluster found!"
 echo -e "${YELLOW}[WARN]${NC} GitLab requires significant resources:"
 echo -e "  - Minimum: 4GB RAM, 2 CPUs"
 echo -e "  - Recommended: 8GB RAM, 4 CPUs"
-echo -e "  - Installation time: 10-15 minutes"
+echo -e "  - Installation time: 20-30 minutes"
 echo ""
 read -p "$(echo -e ${YELLOW}Continue? \(y/n\): ${NC})" -n 1 -r
 echo
@@ -70,24 +73,16 @@ helm repo update > /dev/null 2>&1
 
 echo -e "${GREEN}[✓]${NC} Helm repository added!"
 
-# Install GitLab with corrected values
-echo -e "${GREEN}[INFO]${NC} Installing GitLab..."
-echo -e "${YELLOW}[INFO]${NC} This will take 10-15 minutes. Please be patient."
+# Install GitLab using values file
+echo -e "${GREEN}[INFO]${NC} Installing GitLab with resource limits..."
+echo -e "${YELLOW}[INFO]${NC} Using values file: ${CYAN}${VALUES_FILE}${NC}"
+echo -e "${YELLOW}[INFO]${NC} This will take 20-30 minutes. Please be patient."
 echo ""
 
 helm install gitlab gitlab/gitlab \
   --namespace ${GITLAB_NAMESPACE} \
-  --set global.hosts.domain=gitlab.local \
-  --set global.hosts.externalIP=127.0.0.1 \
-  --set global.ingress.configureCertmanager=false \
-  --set global.ingress.enabled=false \
-  --set nginx-ingress.enabled=false \
-  --set gitlab-runner.install=false \
-  --set prometheus.install=false \
-  --set redis.metrics.enabled=false \
-  --set postgresql.metrics.enabled=false \
-  --set global.edition=ce \
-  --timeout 15m
+  --values ${VALUES_FILE} \
+  --timeout 30m
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}[ERROR]${NC} GitLab installation failed!"
@@ -104,9 +99,9 @@ echo -e "${YELLOW}[INFO]${NC} Monitor progress with:"
 echo -e "  ${CYAN}kubectl get pods -n gitlab -w${NC}"
 echo ""
 
-# Wait for webservice to be ready (with timeout)
-echo -e "${GREEN}[INFO]${NC} Waiting for webservice pod (timeout: 15 minutes)..."
-kubectl wait --for=condition=ready pod -l app=webservice -n ${GITLAB_NAMESPACE} --timeout=900s 2>&1
+# Wait for webservice to be ready
+echo -e "${GREEN}[INFO]${NC} Waiting for webservice pod (timeout: 30 minutes)..."
+kubectl wait --for=condition=ready pod -l app=webservice -n ${GITLAB_NAMESPACE} --timeout=1800s 2>&1
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}[✓]${NC} GitLab is ready!"
