@@ -18,44 +18,44 @@ echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
 
 # Check required tools
-echo -e "${GREEN}[INFO]${NC} Checking required tools..."
+echo -e "${GREEN}[INFO] Checking required tools...${NC}"
 MISSING_TOOLS=0
 
 for tool in docker kubectl k3d; do
     if ! command -v $tool &> /dev/null; then
-        echo -e "${RED}[ERROR]${NC} ${tool} not found!"
+        echo -e "${RED}[ERROR] ${tool} not found!${NC}"
         MISSING_TOOLS=1
     fi
 done
 
 if [ $MISSING_TOOLS -eq 1 ]; then
-    echo -e "${YELLOW}[INFO]${NC} Install missing tools first"
+    echo -e "${YELLOW}[INFO] Install missing tools first${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}[✓]${NC} All required tools found!"
+echo -e "${GREEN}[✓] All required tools found!${NC}"
 echo ""
 
 # Delete existing cluster if exists
 if k3d cluster list | grep -q ${CLUSTER_NAME}; then
-    echo -e "${YELLOW}[INFO]${NC} Deleting existing cluster '${CLUSTER_NAME}'..."
+    echo -e "${YELLOW}[INFO] Deleting existing cluster '${CLUSTER_NAME}'...${NC}"
     k3d cluster delete ${CLUSTER_NAME}
 fi
 
 # Create K3d cluster
-echo -e "${GREEN}[INFO]${NC} Creating K3d cluster: ${CYAN}${CLUSTER_NAME}${NC}..."
+echo -e "${GREEN}[INFO] Creating K3d cluster:${NC} ${CYAN}${CLUSTER_NAME}${NC}..."
 k3d cluster create ${CLUSTER_NAME} \
     --port "8080:80@loadbalancer" \
     --port "8443:443@loadbalancer" \
     --agents 1
 
-echo -e "${GREEN}[✓]${NC} K3d cluster created!"
+echo -e "${GREEN}[✓] K3d cluster created!${NC}"
 
 # Wait for cluster to be ready
-echo -e "${GREEN}[INFO]${NC} Waiting for cluster nodes to be ready..."
+echo -e "${GREEN}[INFO] Waiting for cluster nodes to be ready...${NC}"
 kubectl wait --for=condition=Ready nodes --all --timeout=120s
 
-echo -e "${GREEN}[✓]${NC} Cluster is ready!"
+echo -e "${GREEN}[✓] Cluster is ready!${NC}"
 
 echo ""
 echo -e "${BLUE}${BOLD}=========================================${NC}"

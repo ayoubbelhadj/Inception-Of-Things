@@ -19,65 +19,48 @@ echo -e "${BLUE}${BOLD}    Bonus: Install GitLab Locally${NC}"
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
 
-
 # Check if values file exists
 if [ ! -f "$VALUES_FILE" ]; then
-    echo -e "${RED}[ERROR]${NC} Values file not found: ${VALUES_FILE}"
-    echo -e "${YELLOW}[INFO]${NC} Make sure gitlab-values.yaml exists in confs/"
+    echo -e "${RED}[ERROR] Values file not found: ${VALUES_FILE}${NC}"
+    echo -e "${YELLOW}[INFO] Make sure gitlab-values.yaml exists in confs/${NC}"
     exit 1
 fi
 
 # Check if cluster exists
-echo -e "${GREEN}[INFO]${NC} Checking cluster..."
+echo -e "${GREEN}[INFO] Checking cluster...${NC}"
 if ! k3d cluster list | grep -q ${CLUSTER_NAME}; then
-    echo -e "${RED}[ERROR]${NC} Cluster '${CLUSTER_NAME}' not found!"
-    echo -e "${YELLOW}[INFO]${NC} First run: cd ../p3 && sudo ./scripts/setup-cluster.sh"
+    echo -e "${RED}[ERROR] Cluster '${CLUSTER_NAME}' not found!${NC}"
+    echo -e "${YELLOW}[INFO] First run: ./setup-cluster.sh${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}[✓]${NC} Cluster found!"
-
-# Check resources
-echo -e "${YELLOW}[WARN]${NC} GitLab requires significant resources:"
-echo -e "  - Minimum: 4GB RAM, 2 CPUs"
-echo -e "  - Recommended: 8GB RAM, 4 CPUs"
-echo -e "  - Installation time: 20-30 minutes"
-echo ""
-read -p "$(echo -e ${YELLOW}Continue? \(y/n\): ${NC})" -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Installation cancelled."
-    exit 0
-fi
+echo -e "${GREEN}[✓] Cluster found!${NC}"
 
 # Install Helm
-echo -e "${GREEN}[INFO]${NC} Checking Helm installation..."
+echo -e "${GREEN}[INFO] Checking Helm installation...${NC}"
 if ! command -v helm &> /dev/null; then
-    echo -e "${GREEN}[INFO]${NC} Installing Helm..."
+    echo -e "${GREEN}[INFO] Installing Helm...${NC}"
     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash > /dev/null 2>&1
-    echo -e "${GREEN}[✓]${NC} Helm installed!"
+    echo -e "${GREEN}[✓] Helm installed!${NC}"
 else
-    echo -e "${GREEN}[✓]${NC} Helm already installed"
+    echo -e "${GREEN}[✓] Helm already installed${NC}"
 fi
 
 # Create GitLab namespace
-echo -e "${GREEN}[INFO]${NC} Creating namespace: ${CYAN}${GITLAB_NAMESPACE}${NC}..."
-kubectl create namespace ${GITLAB_NAMESPACE} 2>/dev/null || echo -e "${YELLOW}[INFO]${NC} Namespace already exists"
+echo -e "${GREEN}[INFO] Creating namespace:${NC} ${CYAN}${GITLAB_NAMESPACE}${NC}..."
+kubectl create namespace ${GITLAB_NAMESPACE} 2>/dev/null || echo -e "${YELLOW}[INFO] Namespace already exists${NC}"
 
-echo -e "${GREEN}[✓]${NC} Namespace ready!"
+echo -e "${GREEN}[✓] Namespace ready!${NC}"
 
 # Add GitLab Helm repository
-echo -e "${GREEN}[INFO]${NC} Adding GitLab Helm repository..."
+echo -e "${GREEN}[INFO] Adding GitLab Helm repository...${NC}"
 helm repo add gitlab https://charts.gitlab.io/ > /dev/null 2>&1
 helm repo update > /dev/null 2>&1
 
-echo -e "${GREEN}[✓]${NC} Helm repository added!"
+echo -e "${GREEN}[✓] Helm repository added!${NC}"
 
 # Install GitLab using values file
-echo -e "${GREEN}[INFO]${NC} Installing GitLab with resource limits..."
-echo -e "${YELLOW}[INFO]${NC} Using values file: ${CYAN}${VALUES_FILE}${NC}"
-echo -e "${YELLOW}[INFO]${NC} This will take 20-30 minutes. Please be patient."
-echo ""
+echo -e "${GREEN}[INFO] Installing GitLab ...${NC}"
 
 helm install gitlab gitlab/gitlab \
   --namespace ${GITLAB_NAMESPACE} \
@@ -85,29 +68,28 @@ helm install gitlab gitlab/gitlab \
   --timeout 30m
 
 if [ $? -ne 0 ]; then
-    echo -e "${RED}[ERROR]${NC} GitLab installation failed!"
-    echo -e "${YELLOW}[INFO]${NC} Run cleanup and try again:"
-    echo -e "  ${CYAN}./scripts/cleanup.sh${NC}"
+    echo -e "${RED}[ERROR] GitLab installation failed!${NC}"
+    echo -e "${YELLOW}[INFO] Run cleanup and try again:${NC}"
+    echo -e "  ${CYAN}./cleanup-gitlab.sh${NC}"
     exit 1
 fi
 
+echo -e "${GREEN}[✓] GitLab installed!${NC}"
 echo ""
-echo -e "${GREEN}[✓]${NC} GitLab installation started!"
-echo ""
-echo -e "${GREEN}[INFO]${NC} Waiting for GitLab pods to be ready..."
-echo -e "${YELLOW}[INFO]${NC} Monitor progress with:"
+echo -e "${GREEN}[INFO] Waiting for GitLab pods to be ready...${NC}"
+echo -e "${YELLOW}[INFO] Monitor progress with:${NC}"
 echo -e "  ${CYAN}kubectl get pods -n gitlab -w${NC}"
 echo ""
 
 # Wait for webservice to be ready
-echo -e "${GREEN}[INFO]${NC} Waiting for webservice pod (timeout: 30 minutes)..."
+echo -e "${GREEN}[INFO] Waiting for webservice pod (timeout: 30 minutes)...${NC}"
 kubectl wait --for=condition=ready pod -l app=webservice -n ${GITLAB_NAMESPACE} --timeout=1800s 2>&1
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}[✓]${NC} GitLab is ready!"
+    echo -e "${GREEN}[✓] GitLab is ready!${NC}"
 else
-    echo -e "${YELLOW}[WARN]${NC} GitLab may still be starting."
-    echo -e "${YELLOW}[INFO]${NC} Check status: kubectl get pods -n gitlab"
+    echo -e "${YELLOW}[WARN] GitLab may still be starting.${NC}"
+    echo -e "${YELLOW}[INFO] Check status: kubectl get pods -n gitlab${NC}"
 fi
 
 echo ""
@@ -115,5 +97,5 @@ echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo -e "${BLUE}${BOLD}      GitLab Installation Complete${NC}"
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
-echo -e "${GREEN}[NEXT]${NC} Run: ${CYAN}./scripts/setup-gitlab.sh${NC}"
+echo -e "${GREEN}[NEXT]${NC} Run: ${CYAN}./setup-gitlab.sh${NC}"
 echo ""

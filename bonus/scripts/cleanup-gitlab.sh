@@ -15,11 +15,11 @@ echo ""
 pkill -f "port-forward.*gitlab" 2>/dev/null
 
 # Uninstall GitLab
-echo -e "${GREEN}[INFO]${NC} Uninstalling GitLab..."
+echo -e "${GREEN}[INFO] Uninstalling GitLab...${NC}"
 helm uninstall gitlab -n ${GITLAB_NAMESPACE} 2>/dev/null || true
 
 # Delete namespace
-echo -e "${GREEN}[INFO]${NC} Deleting namespace..."
+echo -e "${GREEN}[INFO] Deleting namespace...${NC}"
 kubectl delete namespace ${GITLAB_NAMESPACE} 2>/dev/null || true
 
 echo ""

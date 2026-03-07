@@ -11,6 +11,8 @@ global:
   appConfig:
     enableUsagePing: false
     enableSeatLink: false
+  shell:
+    port: 2222
 
 nginx-ingress:
   enabled: false
@@ -38,7 +40,9 @@ gitlab:
   gitaly: {}
   gitlab-shell:
     minReplicas: 1
-    maxReplicas: 1
+    service:
+      type: LoadBalancer
+      loadBalancerIP: 134.222.70.25
   kas:
     enabled: false
   gitlab-exporter:

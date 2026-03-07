@@ -17,13 +17,13 @@ echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
 
 if ! k3d cluster list | grep -q ${CLUSTER_NAME}; then
-    echo -e "${YELLOW}[INFO]${NC} Cluster '${CLUSTER_NAME}' not found, nothing to do."
+    echo -e "${YELLOW}[INFO] Cluster '${CLUSTER_NAME}' not found, nothing to do.${NC}"
     exit 0
 fi
 
-echo -e "${GREEN}[INFO]${NC} Deleting cluster: ${CYAN}${CLUSTER_NAME}${NC}..."
+echo -e "${GREEN}[INFO] Deleting cluster:${NC} ${CYAN}${CLUSTER_NAME}${NC}..."
 k3d cluster delete ${CLUSTER_NAME}
 
 echo ""
-echo -e "${GREEN}[✓]${NC} Cluster '${CLUSTER_NAME}' deleted!"
+echo -e "${GREEN}[✓] Cluster '${CLUSTER_NAME}' deleted!${NC}"
 echo ""
