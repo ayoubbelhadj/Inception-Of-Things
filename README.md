@@ -10,7 +10,8 @@ A system administration project introducing Kubernetes through K3s and K3d, usin
 .
 ├── p1/          # K3s with Vagrant (server + worker nodes)
 ├── p2/          # K3s with 3 web applications and Ingress
-└── p3/          # K3d cluster with Argo CD (GitOps)
+├── p3/          # K3d cluster with Argo CD (GitOps)
+└── bonus/       # K3d + GitLab (self-hosted) + Argo CD (GitOps)
 ```
 
 ---
@@ -132,7 +133,46 @@ sudo ./p3/scripts/cleanup.sh
 
 ---
 
+## Bonus — GitLab + Argo CD (Self-hosted GitOps)
+
+Same setup as Part 3, but replaces GitHub with a self-hosted GitLab running inside the cluster. The only key difference is `bonus/confs/application.yaml` points to the internal GitLab URL instead of GitHub:
+
+```
+http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/IoT-abelhadj.git
+```
+
+### Setup
+
+**1. Follow the Part 3 setup** (cluster + Argo CD):
+
+See [Part 3 setup](#setup-1) above.
+
+**2. Install and configure GitLab:**
+
+```bash
+cd bonus/scripts
+./install-gitlab.sh    # installs GitLab via Helm (~10 min)
+./setup-gitlab.sh      # prints credentials and push instructions
+```
+
+**3. Deploy using the bonus application manifest** (points to GitLab instead of GitHub):
+
+```bash
+kubectl apply -f bonus/confs/application.yaml
+```
+
+### Cleanup
+
+```bash
+cd bonus/scripts
+./cleanup-gitlab.sh       # remove GitLab only
+./cleanup-cluster.sh      # remove the cluster
+```
+
+---
+
 ## Requirements
 
 - [Vagrant](https://www.vagrantup.com/) + [VirtualBox](https://www.virtualbox.org/) (Parts 1 & 2)
-- [Docker](https://www.docker.com/), [kubectl](https://kubernetes.io/docs/tasks/tools/), [K3d](https://k3d.io/) (Part 3)
+- [Docker](https://www.docker.com/), [kubectl](https://kubernetes.io/docs/tasks/tools/), [K3d](https://k3d.io/) (Parts 3 & Bonus)
+- [Helm](https://helm.sh/) (Bonus)
