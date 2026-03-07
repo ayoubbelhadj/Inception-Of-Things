@@ -145,7 +145,7 @@ http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/IoT-abelhadj
 
 **1. Follow the Part 3 setup** (cluster + Argo CD):
 
-See [Part 3 setup](#setup-1) above.
+See [Part 3 setup](#part-3--k3d-and-argo-cd) above.
 
 **2. Install and configure GitLab:**
 
