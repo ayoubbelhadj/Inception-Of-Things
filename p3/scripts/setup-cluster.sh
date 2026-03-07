@@ -15,12 +15,6 @@ CLUSTER_NAME="iot-cluster"
 ARGOCD_NAMESPACE="argocd"
 DEV_NAMESPACE="dev"
 
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}[ERROR] Please run as root (use sudo)"
-    exit 1
-fi
-
 # Check required tools
 echo -e "${GREEN}[INFO] Checking required tools...${NC}"
 MISSING_TOOLS=0
@@ -89,8 +83,6 @@ kubectl wait --for=condition=available --timeout=300s deployment --all -n ${ARGO
 echo -e "${GREEN}[✓] Argo CD installed!${NC}"
 
 # Get Argo CD admin password
-echo -e "${GREEN}[INFO] Getting Argo CD admin password...${NC}"
-sleep 10
 ARGOCD_PASSWORD=$(kubectl -n ${ARGOCD_NAMESPACE} get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
 echo ""
@@ -103,7 +95,7 @@ echo -e "  ${BOLD}Username:${NC} ${GREEN}admin${NC}"
 echo -e "  ${BOLD}Password:${NC} ${GREEN}${ARGOCD_PASSWORD}${NC}"
 echo ""
 echo -e "${CYAN}${BOLD}To access Argo CD UI:${NC}"
-echo -e "  ${YELLOW}sudo kubectl port-forward svc/argocd-server -n argocd 8081:443${NC}"
+echo -e "  ${YELLOW}kubectl port-forward svc/argocd-server -n argocd 8081:443${NC}"
 echo -e "  Then visit: ${MAGENTA}https://localhost:8081${NC}"
 echo ""
 

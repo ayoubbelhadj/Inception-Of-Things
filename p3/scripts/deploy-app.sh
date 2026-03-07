@@ -27,10 +27,6 @@ kubectl apply -f ${APP_FILE}
 
 echo -e "${GREEN}[✓] Application manifest applied!${NC}"
 
-# Wait for application to be created
-echo -e "${GREEN}[INFO] Waiting for application to be recognized...${NC}"
-sleep 5
-
 # Check application status
 echo -e "${GREEN}[INFO] Checking application status...${NC}"
 kubectl get application ${APP_NAME} -n ${ARGOCD_NAMESPACE} &> /dev/null
@@ -68,11 +64,11 @@ echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
 echo -e "${GREEN}${BOLD}Next steps:${NC}"
 echo -e "  1. Test the app:"
-echo -e "     ${YELLOW}sudo kubectl port-forward -n dev svc/playground-service 8888:8888${NC}"
+echo -e "     ${YELLOW}kubectl port-forward -n dev svc/playground-service 8888:8888${NC}"
 echo -e "     ${YELLOW}curl http://localhost:8888${NC}"
 echo ""
 echo -e "  2. View in Argo CD UI:"
-echo -e "     ${YELLOW}sudo kubectl port-forward svc/argocd-server -n argocd 8081:443${NC}"
+echo -e "     ${YELLOW}kubectl port-forward svc/argocd-server -n argocd 8081:443${NC}"
 echo -e "     Visit: ${MAGENTA}https://localhost:8081${NC}"
 echo ""
 echo -e "  3. Change version:"
