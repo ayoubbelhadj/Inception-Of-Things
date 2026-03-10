@@ -107,19 +107,28 @@ cd p3/scripts
 sudo ./deploy-app.sh
 ```
 
-**4. Access Argo CD UI:**
+The script prints the external IP and Argo CD credentials at the end.
+
+**4. Deploy the application:**
 
 ```bash
-sudo kubectl port-forward svc/argocd-server -n argocd 8081:443
-# Visit https://localhost:8081  (admin / <password from step 2>)
+cd p3/scripts
+sudo ./deploy-app.sh
 ```
 
-**5. Access the deployed application:**
+### Access
+
+| Service | URL |
+|---|---|
+| Argo CD UI | `http://<external-ip>:30080` |
+| Application | `http://<external-ip>:8080` |
 
 ```bash
-sudo kubectl port-forward -n dev svc/playground-service 8888:8888
-curl http://localhost:8888
+curl http://<external-ip>:8080
+# Expected: {"status":"ok", "message": "v1"}
 ```
+
+Argo CD credentials: `admin` / `<password printed by setup-cluster.sh>`
 
 ### Updating the app version
 
