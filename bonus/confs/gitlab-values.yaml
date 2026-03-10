@@ -4,6 +4,7 @@ global:
     https: false
   ingress:
     enabled: false
+    configureCertmanager: false 
   edition: ce
   
   appConfig:
@@ -25,8 +26,6 @@ registry:
 grafana:
   enabled: false
 
-certmanager:
-  install: false
 
 gitlab:
   webservice:
