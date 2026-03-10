@@ -54,9 +54,6 @@ if [ -z "$GITLAB_PASSWORD" ]; then
     exit 1
 fi
 
-# Get GitLab version
-GITLAB_VERSION=$(kubectl get pods -n ${GITLAB_NAMESPACE} -l app=webservice -o jsonpath='{.items[0].spec.containers[0].image}' | cut -d':' -f2)
-
 # Get external IP
 EXTERNAL_IP=$(curl -s ifconfig.me || curl -s icanhazip.com || echo "localhost")
 
@@ -65,32 +62,12 @@ echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo -e "${BLUE}${BOLD}        GitLab Access Information${NC}"
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
-echo -e "${CYAN}${BOLD}External IP:${NC} ${YELLOW}${EXTERNAL_IP}${NC}"
-echo -e "${CYAN}${BOLD}GitLab Version:${NC} ${GREEN}${GITLAB_VERSION}${NC}"
-echo ""
 echo -e "${CYAN}${BOLD}Admin Credentials:${NC}"
 echo -e "  Username: ${GREEN}root${NC}"
 echo -e "  Password: ${GREEN}${GITLAB_PASSWORD}${NC}"
 echo ""
 echo -e "${CYAN}${BOLD}Access GitLab UI:${NC}"
 echo -e "  ${MAGENTA}${BOLD}http://${EXTERNAL_IP}:30081${NC}"
-echo -e "  ${CYAN}(Use incognito mode for first login)${NC}"
-echo ""
-echo -e "${CYAN}${BOLD}Next Steps:${NC}"
-echo ""
-echo -e "  1. Create project in GitLab:"
-echo -e "     ${YELLOW}• Visit http://${EXTERNAL_IP}:30081${NC}"
-echo -e "     ${YELLOW}• Login as root${NC}"
-echo -e "     ${YELLOW}• New Project → 'iot-abelhadj'${NC}"
-echo -e "     ${YELLOW}• Set visibility: Public${NC}"
-echo ""
-echo -e "  2. Push code to GitLab:"
-echo -e "     ${YELLOW}cd ~/Desktop/IoT-abelhadj${NC}"
-echo -e "     ${YELLOW}git remote add gitlab http://${EXTERNAL_IP}:30081/root/iot-abelhadj.git${NC}"
-echo -e "     ${YELLOW}git push gitlab main${NC}"
-echo ""
-echo -e "  3. Update Argo CD application:"
-echo -e "     ${YELLOW}./switch-to-gitlab.sh${NC}"
 echo ""
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
