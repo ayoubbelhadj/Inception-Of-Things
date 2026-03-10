@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   
-  # Source - Local GitLab repository (cluster-internal URL)
+  # Source - GitLab repository
   source:
-    repoURL: http://134.122.70.25:8082/root/iot-abelhadj.git
+    repoURL: http://EXTERNAL_IP:30081/root/iot-abelhadj.git
     targetRevision: main
     path: dev
   

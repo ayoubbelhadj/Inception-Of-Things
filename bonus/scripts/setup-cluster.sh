@@ -46,7 +46,8 @@ fi
 echo -e "${GREEN}[INFO] Creating K3d cluster:${NC} ${CYAN}${CLUSTER_NAME}${NC}..."
 k3d cluster create ${CLUSTER_NAME} \
     --port "8080:80@loadbalancer" \
-    --port "8443:443@loadbalancer" \
+    --port "30080:30080@server:0" \
+    --port "30081:30081@server:0" \
     --agents 1
 
 echo -e "${GREEN}[✓] K3d cluster created!${NC}"

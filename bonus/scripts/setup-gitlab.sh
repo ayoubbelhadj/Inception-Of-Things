@@ -13,14 +13,14 @@ NC='\033[0m'
 GITLAB_NAMESPACE="gitlab"
 
 echo -e "${BLUE}${BOLD}=========================================${NC}"
-echo -e "${BLUE}${BOLD}       GitLab Configuration Guide${NC}"
+echo -e "${BLUE}${BOLD}       GitLab Configuration${NC}"
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
 
 # Check if GitLab is installed
 if ! kubectl get namespace ${GITLAB_NAMESPACE} &> /dev/null; then
     echo -e "${RED}[ERROR] GitLab namespace not found!${NC}"
-    echo -e "${YELLOW}[INFO] Run: ./scripts/install-gitlab.sh${NC}"
+    echo -e "${YELLOW}[INFO] Run: ./install-gitlab.sh${NC}"
     exit 1
 fi
 
@@ -38,7 +38,12 @@ if [ "$WEBSERVICE_READY" != "True" ]; then
 fi
 
 echo -e "${GREEN}[✓] GitLab is ready!${NC}"
-echo ""
+
+# Apply NodePort service
+echo -e "${GREEN}[INFO] Creating NodePort service for GitLab...${NC}"
+kubectl apply -f ../confs/gitlab-nodeport.yaml
+
+echo -e "${GREEN}[✓] NodePort service created!${NC}"
 
 # Get root password
 echo -e "${GREEN}[INFO] Getting GitLab root password...${NC}"
@@ -46,32 +51,61 @@ GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n ${GI
 
 if [ -z "$GITLAB_PASSWORD" ]; then
     echo -e "${RED}[ERROR] Could not retrieve GitLab password.${NC}"
-    echo -e "${YELLOW}[INFO] Try manually: kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath='{.data.password}' | base64 -d${NC}"
     exit 1
 fi
 
 # Get GitLab version
 GITLAB_VERSION=$(kubectl get pods -n ${GITLAB_NAMESPACE} -l app=webservice -o jsonpath='{.items[0].spec.containers[0].image}' | cut -d':' -f2)
 
+# Get external IP
+EXTERNAL_IP=$(curl -s ifconfig.me || curl -s icanhazip.com || echo "localhost")
+
 echo ""
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo -e "${BLUE}${BOLD}        GitLab Access Information${NC}"
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
+echo -e "${CYAN}${BOLD}External IP:${NC} ${YELLOW}${EXTERNAL_IP}${NC}"
 echo -e "${CYAN}${BOLD}GitLab Version:${NC} ${GREEN}${GITLAB_VERSION}${NC}"
 echo ""
 echo -e "${CYAN}${BOLD}Admin Credentials:${NC}"
 echo -e "  Username: ${GREEN}root${NC}"
 echo -e "  Password: ${GREEN}${GITLAB_PASSWORD}${NC}"
 echo ""
-MY_IP=$(hostname -I | awk '{print $1}')
 echo -e "${CYAN}${BOLD}Access GitLab UI:${NC}"
-echo -e "  ${YELLOW}kubectl port-forward -n gitlab svc/gitlab-webservice-default 8082:8181 --address=0.0.0.0${NC}"
-echo -e "  Then visit: ${MAGENTA}http://${MY_IP}:8082${NC}"
+echo -e "  ${MAGENTA}${BOLD}http://${EXTERNAL_IP}:30081${NC}"
+echo -e "  ${CYAN}(Use incognito mode for first login)${NC}"
 echo ""
-
+echo -e "${CYAN}${BOLD}Next Steps:${NC}"
+echo ""
+echo -e "  1. Create project in GitLab:"
+echo -e "     ${YELLOW}• Visit http://${EXTERNAL_IP}:30081${NC}"
+echo -e "     ${YELLOW}• Login as root${NC}"
+echo -e "     ${YELLOW}• New Project → 'iot-abelhadj'${NC}"
+echo -e "     ${YELLOW}• Set visibility: Public${NC}"
+echo ""
+echo -e "  2. Push code to GitLab:"
+echo -e "     ${YELLOW}cd ~/Desktop/IoT-abelhadj${NC}"
+echo -e "     ${YELLOW}git remote add gitlab http://${EXTERNAL_IP}:30081/root/iot-abelhadj.git${NC}"
+echo -e "     ${YELLOW}git push gitlab main${NC}"
+echo ""
+echo -e "  3. Update Argo CD application:"
+echo -e "     ${YELLOW}./switch-to-gitlab.sh${NC}"
+echo ""
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
-echo -e "${GREEN}[✓] GitLab is ready to use!${NC}"
-echo -e "${YELLOW}[NOTE] Keep the port-forward running to access GitLab${NC}"
+
+# Save credentials
+cat > ../gitlab-credentials.txt << EOF
+GitLab Access Information
+=========================
+
+URL: http://${EXTERNAL_IP}:30081
+Username: root
+Password: ${GITLAB_PASSWORD}
+
+Repository URL: http://${EXTERNAL_IP}:30081/root/iot-abelhadj.git
+EOF
+
+echo -e "${CYAN}[INFO] Credentials saved to: ../gitlab-credentials.txt${NC}"
 echo ""

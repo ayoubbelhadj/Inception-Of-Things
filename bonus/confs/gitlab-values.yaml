@@ -1,18 +1,14 @@
 global:
   hosts:
-    domain: 134.122.70.25
-    externalIP: 134.122.70.25
-    https: false 
+    domain: gitlab.local
+    https: false
   ingress:
-    enabled: true
-    configureCertmanager: false
+    enabled: false
   edition: ce
   
   appConfig:
     enableUsagePing: false
     enableSeatLink: false
-  shell:
-    port: 2222
 
 nginx-ingress:
   enabled: false
@@ -29,6 +25,9 @@ registry:
 grafana:
   enabled: false
 
+certmanager:
+  install: false
+
 gitlab:
   webservice:
     minReplicas: 1
@@ -40,9 +39,7 @@ gitlab:
   gitaly: {}
   gitlab-shell:
     minReplicas: 1
-    service:
-      type: LoadBalancer
-      loadBalancerIP: 134.222.70.25
+    
   kas:
     enabled: false
   gitlab-exporter:
