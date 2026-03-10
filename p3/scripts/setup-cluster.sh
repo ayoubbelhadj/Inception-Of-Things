@@ -55,7 +55,7 @@ k3d cluster delete ${CLUSTER_NAME} 2>/dev/null
 # Create new cluster
 k3d cluster create ${CLUSTER_NAME} \
     --port "8080:80@loadbalancer" \
-    --port "30080:30080@server:0"
+    --port "30080:30080@server:0" \
     --agents 1
 
 echo -e "${GREEN}[✓] K3d cluster created!${NC}"
