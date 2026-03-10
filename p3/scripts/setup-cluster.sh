@@ -55,7 +55,7 @@ k3d cluster delete ${CLUSTER_NAME} 2>/dev/null
 # Create new cluster
 k3d cluster create ${CLUSTER_NAME} \
     --port "8080:80@loadbalancer" \
-    --port "8443:443@loadbalancer" \
+    --port "30080:30080@server:0"
     --agents 1
 
 echo -e "${GREEN}[✓] K3d cluster created!${NC}"
@@ -77,29 +77,41 @@ echo -e "${GREEN}[✓] Namespaces created!${NC}"
 echo -e "${GREEN}[INFO] Installing Argo CD (this may take 2-3 minutes)...${NC}"
 kubectl apply --server-side=true -n ${ARGOCD_NAMESPACE} -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
+# Wait for Argo CD
 echo -e "${GREEN}[INFO] Waiting for Argo CD to be ready...${NC}"
 kubectl wait --for=condition=available --timeout=300s deployment --all -n ${ARGOCD_NAMESPACE}
 
-echo -e "${GREEN}[✓] Argo CD installed!${NC}"
+# Apply ConfigMap for insecure mode (instead of patch!)
+echo -e "${GREEN}[INFO] Configuring Argo CD for HTTP access...${NC}"
+kubectl apply --server-side=true -f ../confs/argocd-cmd-params.yaml
 
-# Get Argo CD admin password
+# Restart Argo CD server to apply ConfigMap changes
+echo -e "${GREEN}[INFO] Restarting Argo CD server...${NC}"
+kubectl rollout restart deployment argocd-server -n argocd
+kubectl rollout status deployment argocd-server -n argocd --timeout=120s
+
+# Apply NodePort service for Argo CD
+echo -e "${GREEN}[INFO] Creating NodePort service for Argo CD...${NC}"
+kubectl apply -f ../confs/argocd-nodeport.yaml
+
+# Get Argo CD password
 ARGOCD_PASSWORD=$(kubectl -n ${ARGOCD_NAMESPACE} get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
-echo ""
-echo -e "${BLUE}${BOLD}=========================================${NC}"
-echo -e "${BLUE}${BOLD}      Argo CD Installation Complete${NC}"
-echo -e "${BLUE}${BOLD}=========================================${NC}"
-echo ""
-echo -e "${CYAN}${BOLD}Argo CD Admin Credentials:${NC}"
-echo -e "  ${BOLD}Username:${NC} ${GREEN}admin${NC}"
-echo -e "  ${BOLD}Password:${NC} ${GREEN}${ARGOCD_PASSWORD}${NC}"
-echo ""
-echo -e "${CYAN}${BOLD}To access Argo CD UI:${NC}"
-echo -e "  ${YELLOW}kubectl port-forward svc/argocd-server -n argocd 8081:443${NC}"
-echo -e "  Then visit: ${MAGENTA}https://localhost:8081${NC}"
-echo ""
+# Get external IP
+echo -e "${GREEN}[INFO] Detecting external IP...${NC}"
+EXTERNAL_IP=$(curl -s ifconfig.me || curl -s icanhazip.com || curl -s ipecho.net/plain || echo "localhost")
 
+echo ""
+echo -e "${GREEN}[✓✓✓] Setup Complete!${NC}"
+echo ""
 echo -e "${BLUE}${BOLD}=========================================${NC}"
-echo -e "${BLUE}${BOLD}          Setup Complete!${NC}"
+echo -e "${BLUE}${BOLD}      Access Information${NC}"
 echo -e "${BLUE}${BOLD}=========================================${NC}"
+echo ""
+echo -e "${CYAN}${BOLD}Detected External IP:${NC} ${YELLOW}${EXTERNAL_IP}${NC}"
+echo ""
+echo -e "${CYAN}${BOLD}Argo CD UI:${NC}"
+echo -e "  URL:      ${MAGENTA}${BOLD}http://${EXTERNAL_IP}:30080${NC}"
+echo -e "  Username: ${GREEN}admin${NC}"
+echo -e "  Password: ${GREEN}${ARGOCD_PASSWORD}${NC}"
 echo ""

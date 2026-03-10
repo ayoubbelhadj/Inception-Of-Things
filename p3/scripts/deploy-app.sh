@@ -29,6 +29,8 @@ echo -e "${GREEN}[✓] Application manifest applied!${NC}"
 
 # Check application status
 echo -e "${GREEN}[INFO] Checking application status...${NC}"
+sleep 3
+
 kubectl get application ${APP_NAME} -n ${ARGOCD_NAMESPACE} &> /dev/null
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}[✓] Application registered in Argo CD!${NC}"
@@ -57,22 +59,24 @@ if [ $COUNTER -eq 60 ]; then
     echo -e "${YELLOW}[WARN] Sync timeout, but application may still be deploying...${NC}"
 fi
 
+# Wait for pod to be ready
+echo ""
+echo -e "${GREEN}[INFO] Waiting for app pod to be ready...${NC}"
+kubectl wait --for=condition=ready pod -l app=wil-playground -n ${DEV_NAMESPACE} --timeout=120s 2>/dev/null
+
+# Get external IP
+EXTERNAL_IP=$(curl -s ifconfig.me || curl -s icanhazip.com || curl -s ipecho.net/plain || echo "localhost")
+
 echo ""
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo -e "${BLUE}${BOLD}        Deployment Complete!${NC}"
 echo -e "${BLUE}${BOLD}=========================================${NC}"
 echo ""
-echo -e "${GREEN}${BOLD}Next steps:${NC}"
-echo -e "  1. Test the app:"
-echo -e "     ${YELLOW}kubectl port-forward -n dev svc/playground-service 8888:8888${NC}"
-echo -e "     ${YELLOW}curl http://localhost:8888${NC}"
+
+echo -e "${CYAN}${BOLD}Access Your Application:${NC}"
+echo -e "  ${MAGENTA}${BOLD}http://${EXTERNAL_IP}:8080${NC}"
 echo ""
-echo -e "  2. View in Argo CD UI:"
-echo -e "     ${YELLOW}kubectl port-forward svc/argocd-server -n argocd 8081:443${NC}"
-echo -e "     Visit: ${MAGENTA}https://localhost:8081${NC}"
-echo ""
-echo -e "  3. Change version:"
-echo -e "     ${YELLOW}Edit github-repo/dev/deployment.yaml${NC}"
-echo -e "     ${YELLOW}Change: wil42/playground:v1 → wil42/playground:v2${NC}"
-echo -e "     ${YELLOW}git commit & push${NC}"
+echo -e "${GREEN}${BOLD}Test:${NC}"
+echo -e "  ${YELLOW}curl http://${EXTERNAL_IP}:8080${NC}"
+echo -e "  ${CYAN}# Expected: {\"status\":\"ok\", \"message\": \"v1\"}${NC}"
 echo ""
